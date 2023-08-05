@@ -17,9 +17,8 @@ const $navLogOut = $("#nav-logout");
 const $submitForm = $("#submit-form");
 const $sumbit = $('#submit-story');
 const $submitButton = $('#submit-button');
-const $storyFavorite = $('.story-favorite');
-const $storyUnavorite = $('.story-unfavorite');
-const $star = $('#star');
+
+const $star = $('.star');
 
 
 

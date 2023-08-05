@@ -114,19 +114,4 @@ function updateUIOnUserLogin() {
   updateNavOnLogin();
 }
 
-// function toFavoriteStory() {
-//   // if (currentUser.username) {
-//   $star.on("click", function () {
-//     $(this).css("color", "#ff6600");
-//   });
-//   // }
-// }
-// $star.on('click', toFavoriteStory);
 
-$star.on("click", function () {
-  $(this).css('color','#ff6600');
-});
-
-// const $storyFavorite = $('.story-favorite');
-// const $storyUnavorite = $('.story-unfavorite');
-// <span id="star" class="story-favorite" style="color: #ff6600;">&bigstar;</span>
