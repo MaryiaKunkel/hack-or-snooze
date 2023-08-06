@@ -26,6 +26,7 @@ class Story {
 
   getHostName() {
     // UNIMPLEMENTED: complete this function!
+    
     return "hostname.com";
   }
 }
@@ -212,9 +213,10 @@ class User {
       method: "POST",
       data: {token: this.loginToken},
     });
-    console.log(response.data);
     this.favorites = response.data.user.favorites;
-    console.log(this.favorites)
+    // console.log(response.data.user.favorites)
+    $(`#${storyId}`).children('span').addClass('story-favorite');
+
   }
 
   async removeFavoriteStory(storyId) {
@@ -223,8 +225,13 @@ class User {
       method: "DELETE",
       data: {token: this.loginToken},
     });
-    console.log(response.data);
+    // console.log($(`#${response.data.user.favorites[0].storyId}`).children('span'))
+    // console.log(storyList)
+    $(`#${storyId}`).children('span').removeClass('story-favorite');
+
     this.favorites = response.data.user.favorites;
-    // this.favorites = this.favorites.filter(story => story.storyId !== storyId);
+    // for (let i = 0; i < this.favorites.length; i++){
+    //   $(`#${this.favorites[i].storyId}`).children('span').removeClass('story-favorite');
+    // }
   }
 }

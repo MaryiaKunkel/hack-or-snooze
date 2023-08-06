@@ -8,7 +8,6 @@ let storyList;
 async function getAndShowStoriesOnStart() {
   storyList = await StoryList.getStories();
   $storiesLoadingMsg.remove();
-
   putStoriesOnPage();
 }
 
@@ -34,6 +33,9 @@ function generateStoryMarkup(story) {
   `);
 }
 
+function giveStoryFavoriteClass(element) {
+  $(element).addClass('story-favorite');
+}
 
 /** Gets list of stories from server, generates their HTML, and puts on page. */
 
@@ -67,20 +69,77 @@ $submitForm.on('submit', submitNewStory);
 
 
 function toFavoriteStory() {
-
   $(document).on('click', '.star', function () {
     if (!currentUser) {
       alert('Please log in or sign up')
     } else {
-      let toggleClass = $(this).toggleClass('story-favorite');
       const storyId = $(this).closest('li').attr('id');
       if (!$(this).hasClass('story-favorite')) {
         currentUser.addFavoriteStory(storyId);
       } else {
         currentUser.removeFavoriteStory(storyId);
       }
+      // console.log(currentUser.favorites)
+
     };
   });
 }
 
 toFavoriteStory();
+
+function showFavoritedStories() {
+  if (currentUser) {
+    let favoritedStories = currentUser.favorites.map(obj => obj.storyId); // array
+    for (let i = 0; i < storyList.stories.length; i++){
+      if (favoritedStories.includes(storyList.stories[i].storyId)) {
+        $(`#${storyList.stories[i].storyId}`).children('span').addClass('story-favorite');
+        // console.log(currentUser.favorites);
+
+      }
+    }
+  }
+}
+
+showFavoritedStories();
+
+function clickFavoritesTab() {
+  $('#nav-favorites').on('click', function () {
+    // console.log(currentUser.favorites);
+    putFavoriteStoriesOnPage();
+
+    // async function getAndShowStoriesOnStart() {
+    //   storyList = await StoryList.getStories();
+    //   $storiesLoadingMsg.remove();
+    //   putStoriesOnPage();
+    // }
+  })
+}
+clickFavoritesTab()
+
+function generateFavoriteStoryMarkup(story) {
+  // const hostName = story.getHostName();
+  const hostName = '123456';
+  const starClass = 'story-favorite';
+  return $(`
+    <li id="${story.storyId}">
+      <a href="${story.url}" target="a_blank" class="story-link">${story.title}</a>
+      <small class="story-hostname">(${hostName})</small>
+      <small class="story-author">by ${story.author}</small>
+      <small class="story-user">posted by ${story.username}</small>
+      <span class="star ${starClass}">&bigstar;</span>
+    </li>
+  `);
+}
+
+function putFavoriteStoriesOnPage() {
+  console.debug("putFavoriteStoriesOnPage");
+  $allStoriesList.empty();
+  for (let i = 0; i < currentUser.favorites.length; i++) {
+    // let storyId = currentUser.favorites[i].storyId;
+    let $story = generateFavoriteStoryMarkup(currentUser.favorites[i]);
+
+    $allStoriesList.append($story);
+  }
+  $allStoriesList.show();
+  // console.log($allStoriesList)
+}
