@@ -7,30 +7,37 @@ const BASE_URL = "https://hack-or-snooze-v3.herokuapp.com";
  */
 
 class Story {
-
   /** Make instance of Story from data object about story:
    *   - {title, author, url, username, storyId, createdAt}
    */
 
-  constructor({ storyId, title, author, url, username, createdAt, isFavorite }) {
+  constructor({
+    storyId,
+    title,
+    author,
+    url,
+    username,
+    createdAt,
+    isFavorite,
+  }) {
     this.storyId = storyId;
     this.title = title;
     this.author = author;
     this.url = url;
     this.username = username;
     this.createdAt = createdAt;
-    this.isFavorite = isFavorite || false;
+    this.isFavorite = isFavorite;
   }
 
   /** Parses hostname out of URL and returns it. */
 
   getHostName() {
     // UNIMPLEMENTED: complete this function!
-    
-    return "hostname.com";
+    let url = this.url;
+    let hostname = url.split('/')[2];    
+    return hostname;
   }
 }
-
 
 /******************************************************************************
  * List of Story instances: used by UI to show story lists in DOM.
@@ -62,7 +69,7 @@ class StoryList {
     });
 
     // turn plain old story objects from API into instances of Story class
-    const stories = response.data.stories.map(story => new Story(story));
+    const stories = response.data.stories.map((story) => new Story(story));
 
     // build an instance of our own class using the new array of stories
     return new StoryList(stories);
@@ -75,22 +82,26 @@ class StoryList {
    * Returns the new Story instance
    */
 
-  async addStory(user, {title, author, url}) {
+  async addStory(user, { title, author, url }) {
     // UNIMPLEMENTED: complete this function!
     const token = user.loginToken;
-    const response = await axios({
-      url: `${BASE_URL}/stories`,
-      method: "POST",
-      data: { token, story: { title, author, url } },
-    });
-    console.log(response.data.story)
-    const story = new Story(response.data.story);
-    storyList.stories.unshift(story);
-    user.ownStories.unshift(story);
-    return story;
+    console.log(token);
+    console.log(url, author, title);
+    try {
+      const response = await axios({
+        url: `${BASE_URL}/stories`,
+        method: "POST",
+        data: { token, story: { title, author, url } },
+      });
+      const story = new Story(response.data.story);
+      storyList.stories.unshift(story);
+      user.ownStories.unshift(story);
+      return story;
+    } catch (error) {
+      console.error("Error adding story:", error);
+    }
   }
 }
-
 
 /******************************************************************************
  * User: a user in the system (only used to represent the current user)
@@ -102,21 +113,17 @@ class User {
    *   - token
    */
 
-  constructor({
-                username,
-                name,
-                createdAt,
-                favorites = [],
-                ownStories = [],
-              },
-              token) {
+  constructor(
+    { username, name, createdAt, favorites = [], ownStories = [] },
+    token
+  ) {
     this.username = username;
     this.name = name;
     this.createdAt = createdAt;
 
     // instantiate Story instances for the user's favorites and ownStories
-    this.favorites = favorites.map(s => new Story(s));
-    this.ownStories = ownStories.map(s => new Story(s));
+    this.favorites = favorites.map((s) => new Story(s));
+    this.ownStories = ownStories.map((s) => new Story(s));
 
     // store the login token on the user so it's easy to find for API calls.
     this.loginToken = token;
@@ -136,7 +143,7 @@ class User {
       data: { user: { username, password, name } },
     });
 
-    let { user } = response.data
+    let { user } = response.data;
 
     return new User(
       {
@@ -144,7 +151,7 @@ class User {
         name: user.name,
         createdAt: user.createdAt,
         favorites: user.favorites,
-        ownStories: user.stories
+        ownStories: user.stories,
       },
       response.data.token
     );
@@ -164,14 +171,13 @@ class User {
     });
 
     let { user } = response.data;
-
     return new User(
       {
         username: user.username,
         name: user.name,
         createdAt: user.createdAt,
         favorites: user.favorites,
-        ownStories: user.stories
+        ownStories: user.stories,
       },
       response.data.token
     );
@@ -197,7 +203,7 @@ class User {
           name: user.name,
           createdAt: user.createdAt,
           favorites: user.favorites,
-          ownStories: user.stories
+          ownStories: user.stories,
         },
         token
       );
@@ -211,27 +217,42 @@ class User {
     const response = await axios({
       url: `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
       method: "POST",
-      data: {token: this.loginToken},
+      data: { token: this.loginToken },
     });
-    this.favorites = response.data.user.favorites;
-    // console.log(response.data.user.favorites)
-    $(`#${storyId}`).children('span').addClass('story-favorite');
-
+    this.favorites = response.data.user.favorites.map((s) => new Story(s));
+    $(`#${storyId}`).children("span").addClass("story-favorite");
   }
 
   async removeFavoriteStory(storyId) {
     const response = await axios({
       url: `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
       method: "DELETE",
-      data: {token: this.loginToken},
+      data: { token: this.loginToken },
     });
-    // console.log($(`#${response.data.user.favorites[0].storyId}`).children('span'))
-    // console.log(storyList)
-    $(`#${storyId}`).children('span').removeClass('story-favorite');
+    $(`#${storyId}`).children("span").removeClass("story-favorite");
+    this.favorites = response.data.user.favorites.map((s) => new Story(s));
+  } 
 
-    this.favorites = response.data.user.favorites;
-    // for (let i = 0; i < this.favorites.length; i++){
-    //   $(`#${this.favorites[i].storyId}`).children('span').removeClass('story-favorite');
-    // }
+  async addMyStory(storyId) {
+    const response = await axios({
+      url: `${BASE_URL}/users/${this.username}/ownStories/${storyId}`,
+      method: "POST",
+      data: { token: this.loginToken },
+    });
+    this.ownStories = response.data.user.ownStories.map((s) => new Story(s));
+    $(`#${storyId}`).children(".story-user").addClass("my-stories");
   }
+
+  async removeMyStory(storyId) {
+    const response = await axios({
+      url: `${BASE_URL}/users/${this.username}/ownStories/${storyId}`,
+      method: "DELETE",
+      data: { token: this.loginToken },
+    });
+    $(`#${storyId}`).children(".story-user").removeClass("my-stories");
+    this.ownStories = response.data.user.favorites.map((s) => new Story(s));
+  } 
 }
+
+
+
