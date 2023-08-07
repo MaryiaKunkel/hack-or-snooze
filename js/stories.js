@@ -29,7 +29,6 @@ function generateStoryMarkup(story) {
       <small class="story-hostname">(${hostName})</small><br>
       <small class="story-author">by ${story.author}</small><br>
       <small class="story-user">posted by ${story.username}</small>
-      <input class="delete-button" type="button" value="delete">
     </li>
   `);
 }
@@ -117,7 +116,6 @@ function generateFavoriteStoryMarkup(story) {
       <small class="story-hostname">(${hostName})</small><br>
       <small class="story-author">by ${story.author}</small><br>
       <small class="story-user">posted by ${story.username}</small>
-      <input class="delete-button" type="button" value="delete">
     </li>
   `);
 };
@@ -141,7 +139,7 @@ function putMyStoriesOnPage() {
   console.debug("putMyStoriesOnPage");
   $allStoriesList.empty();
   for (let i = 0; i < currentUser.ownStories.length; i++) {
-    let $story = generateStoryMarkup(currentUser.ownStories[i]);
+    let $story = generateMyStoryMarkup(currentUser.ownStories[i]);
     $allStoriesList.append($story);
   }
   $allStoriesList.show();
@@ -154,10 +152,27 @@ function clickMyStoriesTab() {
 }
 clickMyStoriesTab();
 
+function generateMyStoryMarkup(story) {
+  const hostName = story.getHostName();
+  const starClass = story.isFavorite ? 'story-favorite' : '';
+  
+  return $(`
+    <li id="${story.storyId}">
+      <span class="star ${starClass}">&bigstar;</span>
+      <a href="${story.url}" target="a_blank" class="story-link">${story.title}</a>
+      <small class="story-hostname">(${hostName})</small><br>
+      <small class="story-author">by ${story.author}</small><br>
+      <small class="story-user">posted by ${story.username}</small>
+      <input class="delete-button" type="button" value="delete">
+    </li>
+  `);
+}
+
 function toMyStory() {
   $(document).on('click', '.story-user', function () {
     if (!currentUser) {
       $allStoriesList.empty();
+      alert('Please log in to see your stories')
     } else {
       const storyId = $(this).closest('li').attr('id');
       if (!$(this).hasClass('my-story')) {
@@ -168,3 +183,12 @@ function toMyStory() {
     };
   });
 }
+
+function deleteMyStory() {
+  $(document).on('click', '.delete-button', function () {
+    const storyId = $(this).closest('li').attr('id');
+    currentUser.removeMyStory(storyId);
+  });
+};
+
+deleteMyStory()

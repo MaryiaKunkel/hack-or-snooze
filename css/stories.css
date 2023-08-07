@@ -53,3 +53,7 @@
 .story-user {
   display: block;
 }
+
+.delete-button {
+  margin-left: 17px;
+}
